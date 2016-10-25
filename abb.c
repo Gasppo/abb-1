@@ -40,6 +40,24 @@ abb_nodo_t *nodo_crear(char *clave; void *valor, abb_nodo_t *padre){
 }
 
 //Funciones auxiliares-----------------------------------------------------------------------
+abb_nodo_t *buscar_menor_der(abb_t *arbol, abb_nodo_t *nodo){
+    abb_nodo_t *menor_der = NULL;
+    if(nodo->der) menor_der = nodo->der;
+    while true{
+        if(menor_der->izq) menor_der = menor_der->izq;
+        else break
+    }
+    return menor_der;
+}
+
+void swap(abb_nodo_t *nodo1, abb_nodo_t *nodo2){
+        void *dato_auxiliar = nodo1->dato;
+        char *clave_auxiliar = nodo1->clave;
+        nodo1->clave = nodo2->clave;
+        nodo1->dato = nodo2->dato;
+        nodo2->dato = dato_auxiliar;
+        nodo2->clave = clave_auxiliar;
+}
 
 bool abb_guardar_auxiliar(abb_t *arbol; abb_nodo_t *nodo, const char *clave; void *valor){
     int comparacion = (arbol->cmp(nodo->clave, clave));
@@ -63,9 +81,11 @@ bool abb_guardar_auxiliar(abb_t *arbol; abb_nodo_t *nodo, const char *clave; voi
 
 bool abb_pertenece_auxiliar(const abb_t *arbol; const char *clave; abb_nodo_t *nodo){
     if(nodo == NULL) return false;
-    if(!arbol->cmp(nodo->clave, clave)) return true;
-    if(!nodo->izq && !nodo->der) return false;
-    return(abb_pertenece_auxiliar(arbol, clave, nodo->izq) || abb_pertenece_auxiliar(arbol, clave, nodo->der));
+    int comparacion = (arbol->cmp(nodo->clave, clave));
+    if(!comparacion) return true;
+    else if((comparacion > 0 && !nodo->izq) || (comparacion < 0 && !nodo->der)) return false;
+    else if(comparacion > 0) return abb_pertenece_auxiliar(arbol, clave, nodo->izq);
+    else return abb_pertenece_auxiliar(arbol, clave, nodo->der;
 }
 
 void *abb_obtener_auxiliar(const abb_t *arbol; const char *clave; abb_nodo_t *nodo){
@@ -90,7 +110,30 @@ void destruir_nodos(abb_t *arbol, abb_nodo_t *nodo){
     destruir_nodo(arbol, nodo);
 }
 
-void *abb_borrar_auxiliar(abb_t *arbol, const char *clave, abb_nodo_t *nodo){  
+void *abb_borrar_auxiliar(abb_t *arbol, abb_nodo_t *nodo){
+    int comparacion = arbol->cmp(nodo->clave, nodo->padre->clave);
+    if(!nodo->izq && !nodo->der){
+        if(comparacion > 0) nodo->padre->der = NULL;
+        else nodo->padre->izq = NULL;
+    }
+
+    else if((!nodo->izq) || (!nodo->der)){
+        if(nodo->izq){
+            if(comparacion > 0) nodo->padre->der = nodo->izq;
+            else nodo->padre->izq = nodo->izq  
+        }
+        else{
+            if(comparacion < 0) nodo->padre->der = nodo->der;
+            else nodo->padre->izq = nodo->der;
+        }
+    }
+    else{
+        abb_nodo_t *menor_der = buscar_menor_der(arbol, nodo);
+        swap(nodo, menor_der);
+        nodo = menor->der;
+    }
+
+    destruir_nodo(arbol, nodo)
 }
 
 //Primitivas arbol-----------------------------------------------------------------------
@@ -113,7 +156,8 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
 }
 
 void *abb_borrar(abb_t *arbol, const char *clave){
-    abb_borrar_auxiliar(arbol, clave, arbol->raiz);
+    nodo_t *a_borrar = abb_obtener(arbol, clave);
+    abb_borrar_auxiliar(arbol, a_borrar);
 }
 
 void *abb_obtener(const abb_t *arbol, const char *clave){
@@ -146,6 +190,7 @@ bool abb_iter_in_avanzar(abb_iter_t *iter);
 const char *abb_iter_in_ver_actual(const abb_iter_t *iter);
 bool abb_iter_in_al_final(const abb_iter_t *iter);
 void abb_iter_in_destruir(abb_iter_t* iter);
+
 
 
 
