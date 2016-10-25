@@ -127,13 +127,19 @@ void *abb_borrar_auxiliar(abb_t *arbol, abb_nodo_t *nodo){
             else nodo->padre->izq = nodo->der;
         }
     }
+
     else{
         abb_nodo_t *menor_der = buscar_menor_der(arbol, nodo);
         swap(nodo, menor_der);
-        nodo = menor->der;
+        void *dato_auxiliar = abb_borrar_auxiliar(arbol, menor_der);
+        return dato_auxiliar;
+
     }
 
-    destruir_nodo(arbol, nodo)
+    void *dato_auxiliar = nodo->dato;
+    destruir_nodo(nodo);
+    return dato_auxiliar;
+
 }
 
 //Primitivas arbol-----------------------------------------------------------------------
@@ -190,6 +196,8 @@ bool abb_iter_in_avanzar(abb_iter_t *iter);
 const char *abb_iter_in_ver_actual(const abb_iter_t *iter);
 bool abb_iter_in_al_final(const abb_iter_t *iter);
 void abb_iter_in_destruir(abb_iter_t* iter);
+
+
 
 
 
