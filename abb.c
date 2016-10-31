@@ -123,15 +123,22 @@ void destruir_nodos(abb_t *arbol, abb_nodo_t *nodo){
 
 void *abb_borrar_auxiliar(abb_t *arbol, abb_nodo_t *nodo, const char *clave){
     if(nodo == NULL) return NULL;
+    //Variable que se usará mas adelante
     int comparacion;
+
+    //Se fija si el nodo actual es el que se quiere cambiar. Si es, entra
     if(!arbol->cmp(nodo->clave, clave)){
+        //Si no es la raiz, se fija si es hijo derecho o izquierdo de su padre
         if(nodo->padre != NULL) comparacion = arbol->cmp(nodo->clave, nodo->padre->clave);
+        
+        //Si es una hoja (no tiene hijos), simplemente actualiza la referencia del padre. Si el nodo es la raiz, pone la raiz en NULL
         if(!nodo->izq && !nodo->der){
             if(nodo->padre == NULL) arbol->raiz = NULL;
             else if(comparacion > 0) nodo->padre->der = NULL;
             else nodo->padre->izq = NULL;
         }
 
+        //Si tiene un hijo, actualiza la referencia su padre a su hijo. SI es la raiz, pone a su hijo como raiz
         else if(!nodo->izq || !nodo->der){
             if(nodo->izq){
                 if(nodo->padre == NULL){
@@ -151,13 +158,18 @@ void *abb_borrar_auxiliar(abb_t *arbol, abb_nodo_t *nodo, const char *clave){
             }
         }
 
+        //Si tiene dos hijos, se hace lo que dijeron en la práctica
+        //Se swapea el nodo, con su menor hijo derecho, y luego se llama a borrar de vuelta, con el que quedo en la posicion del menor hijo derecho
+        //Este va a estar en uno de los dos primeros casos}//Por ultimo se devuelve el dato
         else{
             abb_nodo_t *menor_der = buscar_menor_der(arbol, nodo);
             swap(nodo, menor_der);
+            //SI no me equivoco, la cantidad se actualiza dentro de este borrar_auxiliar:
             void *dato_auxiliar = abb_borrar_auxiliar(arbol, menor_der, clave);
             return dato_auxiliar;
         }
 
+        ///Se guarda el dato, se liberan la clave y el nodo, se resta la cantidad, y se devuelve el dato.
         void *dato_auxiliar = nodo->valor;
         free(nodo->clave);
         free(nodo);
@@ -165,6 +177,7 @@ void *abb_borrar_auxiliar(abb_t *arbol, abb_nodo_t *nodo, const char *clave){
         return dato_auxiliar;
     }
 
+    //SI no era el nodo que estaba buscando, llama a borrar_auxiliar con su hijo izquierdo o derecho según corresponda
     else if(arbol->cmp(nodo->clave, clave) > 0) return abb_borrar_auxiliar(arbol, nodo->izq, clave);
     else return abb_borrar_auxiliar(arbol, nodo->der, clave);
 }
@@ -241,18 +254,13 @@ struct abb_iter {
 
 abb_iter_t *abb_iter_in_crear(const abb_t *arbol) {
     
-    if(!arbol){
-    return NULL;
-    }
+    if(!arbol) return NULL;
     
     abb_iter_t* iter = malloc(sizeof(abb_iter_t));
-    if(!iter){
-        return NULL;
-    }
+    if(!iter) return NULL;
 
     pila_t* pila = pila_crear();
-    if(!pila)
-    {
+    if(!pila){
         free(iter);
         return NULL;
     }
@@ -264,8 +272,8 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol) {
             nodo = nodo->izq;
             pila_apilar(pila, nodo);
                 
-            }
         }
+    }
             
     iter->pila = pila;
 
@@ -275,7 +283,7 @@ bool abb_iter_in_avanzar(abb_iter_t *iter){
 
     if(!iter || !iter->pila || pila_esta_vacia(iter->pila)){
         return false;
-        }
+    }
 
     abb_nodo_t *nodo = pila_desapilar(iter->pila);
 
@@ -284,8 +292,8 @@ bool abb_iter_in_avanzar(abb_iter_t *iter){
         while(nodo->izq != NULL){
             nodo = nodo->izq;
             pila_apilar(iter->pila, nodo);
-            }
         }
+    }
     free(nodo);
      return true; 
  
@@ -304,24 +312,9 @@ bool abb_iter_in_al_final(const abb_iter_t *iter){
 
 void abb_iter_in_destruir(abb_iter_t* iter){
     if(!iter) return;
-    if(iter->pila)
-        pila_destruir(iter->pila, NULL);
+    if(iter->pila) pila_destruir(iter->pila, NULL);
     free(iter);
 }
-
-//Iterador interno-----------------------------------------------------------------------
-void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
-
-//Iterador externo-----------------------------------------------------------------------
-
-typedef struct abb_iter abb_iter_t;
-
-abb_iter_t *abb_iter_in_crear(const abb_t *arbol);
-bool abb_iter_in_avanzar(abb_iter_t *iter);
-const char *abb_iter_in_ver_actual(const abb_iter_t *iter);
-bool abb_iter_in_al_final(const abb_iter_t *iter);
-void abb_iter_in_destruir(abb_iter_t* iter);
-
 
 
 
